@@ -6,21 +6,30 @@ const main = async () => {
   try {
     const args = process.argv.slice(2);
 
-    let dateString;
+    let date;
     if (args[0]) {
-      console.log(args);
-      if (/^\d{4}[-/]\d{2}[-/]\d{2}$/.test(args[0])) {
-        dateString = args[0];
-      } else if (/^\d{1,2}[-/]\d{2}$/.test(args[0])) {
-        dateString = `${new Date().getFullYear()}-${args[0]}`;
+      const parsed = args[0]
+        .split(/\D/)
+        .filter((a) => a)
+        .reverse();
+
+      let year;
+      let month = Number(parsed[1]) - 1;
+      let day = Number(parsed[0]);
+      if (parsed.length === 3) {
+        year = Number(parsed[2]);
+      } else if (parsed.length === 2) {
+        year = new Date().getFullYear();
       } else {
         throw "Invalid date string";
       }
+
+      date = new Date(year, month, day);
     } else {
-      dateString = new Date().toISOString().split("T")[0];
+      dateString = new Date();
     }
 
-    dateString = dateString.replace("/", "-");
+    dateString = datefns.format(date, "yyyy-MM-dd");
 
     const result = await axios.post(
       "https://app.rockgympro.com/b/widget/?a=equery",
@@ -47,7 +56,7 @@ const main = async () => {
 
     const rows = result.data.event_list_html.split("<tr>").slice(1);
 
-    const data = [];
+    const data = [[dateString, "Availability"]];
 
     for (let row of rows) {
       row = row.replace(/(\<.*?\>)/g, "");
