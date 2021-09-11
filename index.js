@@ -1,13 +1,22 @@
+#!/usr/bin/env node
 const axios = require("axios");
 const table = require("table");
 const datefns = require("date-fns");
 
+const GENERIC_ERROR = `Something went wrong.
+USAGE: \`grrAvail [mm-dd]\`.  
+
+If no date provided, today's date will be used.
+`;
+
 const main = async () => {
   try {
+    // Ignore the first two elements of argv.
     const args = process.argv.slice(2);
 
     let date;
     if (args[0]) {
+      // Split argument by non-numbers -> parsed = [dd, mm, yyyy] or [dd, mm]
       const parsed = args[0]
         .split(/\D/)
         .filter((a) => a)
@@ -16,17 +25,25 @@ const main = async () => {
       let year;
       let month = Number(parsed[1]) - 1;
       let day = Number(parsed[0]);
+
       if (parsed.length === 3) {
+        // YYYY-MM-DD
         year = Number(parsed[2]);
       } else if (parsed.length === 2) {
+        // MM-DD
         year = new Date().getFullYear();
       } else {
-        throw "Invalid date string";
+        throw GENERIC_ERROR;
       }
 
       date = new Date(year, month, day);
+
+      // If no year was provided, ensure that the automatic date is not over a month in the past.
+      if (date < datefns.subMonths(new Date(), 1) && parsed.length === 2) {
+        date = datefns.addYears(date, 1);
+      }
     } else {
-      dateString = new Date();
+      date = new Date();
     }
 
     dateString = datefns.format(date, "yyyy-MM-dd");
