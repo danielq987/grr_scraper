@@ -82,7 +82,8 @@ const main = async () => {
         .filter((a) => a)
         .slice(0, 2);
 
-      lines[0] = lines[0].split(",").at(-1).trim();
+      const splitted = lines[0].split(",");
+      lines[0] = splitted[splitted.length - 1].trim();
       lines[1] = lines[1].replace("Availability", "");
       data.push(lines);
     }
